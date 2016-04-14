@@ -1,0 +1,51 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
+
+    defaultConfig {
+        applicationId "com.is.movies"
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        exclude 'APK LICENSE.txt'
+        exclude 'LICENSE.txt'
+    }
+// java版本
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile project(':domain')
+    compile 'com.android.support:cardview-v7:23.+'
+    compile 'com.android.support:appcompat-v7:23.+'
+    compile 'com.android.support:recyclerview-v7:23.+'
+    compile 'com.android.support:palette-v7:23.+'
+    compile 'com.android.support:support-v13:23.+'
+    compile 'com.android.support:support-v4:23.+'
+    // Dagger compiler
+    compile 'org.glassfish:javax.annotation:3.1'
+    compile "com.google.dagger:dagger:2.0"
+    apt 'com.google.dagger:dagger-compiler:2.0'
+    // Square libraries
+    compile 'com.squareup.picasso:picasso:2.4.0'
+    compile 'com.jakewharton:butterknife:6.0.0'
+    // Third party libraries
+    compile 'com.nispok:snackbar:2.9.1'
+}
