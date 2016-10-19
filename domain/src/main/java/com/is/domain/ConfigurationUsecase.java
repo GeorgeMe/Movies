@@ -1,5 +1,5 @@
 package com.is.domain;
-import com.is.model.entities.ConfigurationResponse;
+import com.is.movies.entities.ConfigurationResponse;
 /**
  * Created by George on 2015/8/13.
  */

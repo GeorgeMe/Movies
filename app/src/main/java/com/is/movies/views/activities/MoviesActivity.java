@@ -20,33 +20,26 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.is.movies.MoviesApp;
 import com.is.movies.R;
-import com.is.movies.dagger.components.DaggerBasicMoviesUsecasesComponent;
-import com.is.movies.dagger.modules.BasicMoviesUsecasesModule;
 import com.is.movies.mvp.presenters.MoviesPresenter;
 import com.is.movies.mvp.views.MoviesView;
 import com.is.movies.utils.RecyclerInsetsDecoration;
 import com.is.movies.utils.RecyclerViewClickListener;
 import com.is.movies.views.adapters.MoviesAdapter;
 import com.is.movies.views.fragments.NavigationDrawerFragment;
-import com.is.model.entities.Movie;
-import com.is.model.entities.MoviesWrapper;
+import com.is.movies.entities.Movie;
+import com.is.movies.entities.MoviesWrapper;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.Optional;
 /**
  * Created by George on 2015/8/13.
  */
-public class MoviesActivity extends ActionBarActivity implements
-        MoviesView, RecyclerViewClickListener, View.OnClickListener {
+public class MoviesActivity extends ActionBarActivity implements MoviesView, RecyclerViewClickListener, View.OnClickListener {
 
     public static SparseArray<Bitmap> sPhotoCache = new SparseArray<Bitmap>(1);
 
@@ -56,47 +49,44 @@ public class MoviesActivity extends ActionBarActivity implements
     public final static String EXTRA_MOVIE_LOCATION         = "view_location";
     public final static String EXTRA_MOVIE_POSITION         = "movie_position";
     public final static String SHARED_ELEMENT_COVER         = "cover";
-
+    private int page=1;
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private MoviesAdapter mMoviesAdapter;
 
     public float mBackgroundTranslation;
 
-    @InjectView(R.id.activity_movies_toolbar)                   Toolbar mToolbar;
-    @InjectView(R.id.activity_movies_progress)                  ProgressBar mProgressBar;
-    @InjectView(R.id.activity_movies_recycler)                  RecyclerView mRecycler;
-    @Inject MoviesPresenter mMoviesPresenter;
+    @Bind(R.id.activity_movies_toolbar)                   Toolbar mToolbar;
+    @Bind(R.id.activity_movies_progress)                  ProgressBar mProgressBar;
+    @Bind(R.id.activity_movies_recycler)                  RecyclerView mRecycler;
+    private MoviesPresenter mMoviesPresenter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.inject(this);
 
-        initializeDependencyInjector();
+        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+
         initializeToolbar();
         initializeRecycler();
         initializeDrawer();
 
-        if (savedInstanceState == null)
-            mMoviesPresenter.attachView(this);
-
-        else
+        if (savedInstanceState == null){
+            if (mMoviesPresenter==null)
+            mMoviesPresenter=new MoviesPresenter(getContext(),this);
+            mMoviesPresenter.getPopularMoviesByPage(""+page);
+        }else{
+            if (mMoviesPresenter==null)
+                mMoviesPresenter=new MoviesPresenter(getContext(),this);
             initializeFromParams(savedInstanceState);
+        }
     }
 
-    @Override
-    protected void onStart() {
-
-        super.onStart();
-        mMoviesPresenter.start();
-    }
 
     private void initializeFromParams(Bundle savedInstanceState) {
 
-        MoviesWrapper moviesWrapper = (MoviesWrapper) savedInstanceState
-                .getSerializable(BUNDLE_MOVIES_WRAPPER);
+        MoviesWrapper moviesWrapper = (MoviesWrapper) savedInstanceState .getSerializable(BUNDLE_MOVIES_WRAPPER);
 
         mMoviesPresenter.onPopularMoviesReceived(moviesWrapper);
     }
@@ -108,12 +98,8 @@ public class MoviesActivity extends ActionBarActivity implements
     }
 
     private void initializeDrawer() {
-
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
-
-        mNavigationDrawerFragment.setUp(R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+        mNavigationDrawerFragment = (NavigationDrawerFragment)getFragmentManager().findFragmentById(R.id.navigation_drawer);
+        mNavigationDrawerFragment.setUp(R.id.navigation_drawer,(DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
     private void initializeToolbar() {
@@ -121,32 +107,16 @@ public class MoviesActivity extends ActionBarActivity implements
         setSupportActionBar(mToolbar);
         getSupportActionBar().setTitle("");
 
-        getSupportActionBar().setHomeAsUpIndicator(
-                R.drawable.ic_menu_white_24dp);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
 
         mToolbar.setNavigationOnClickListener(this);
-    }
-    //初始化依赖注射器
-    private void initializeDependencyInjector() {
-
-        MoviesApp app = (MoviesApp) getApplication();
-
-        DaggerBasicMoviesUsecasesComponent.builder()
-                .appComponent(app.getAppComponent())
-                .basicMoviesUsecasesModule(new BasicMoviesUsecasesModule())
-                .build().inject(this);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-
         super.onSaveInstanceState(outState);
-
         if (mMoviesAdapter != null) {
-
-            outState.putSerializable(BUNDLE_MOVIES_WRAPPER, new MoviesWrapper(
-                    mMoviesAdapter.getMovieList()));
-
+            outState.putSerializable(BUNDLE_MOVIES_WRAPPER, new MoviesWrapper(mMoviesAdapter.getMovieList()));
             outState.putFloat(BUNDLE_BACK_TRANSLATION, mBackgroundTranslation);
         }
     }
@@ -167,13 +137,11 @@ public class MoviesActivity extends ActionBarActivity implements
 
     @Override
     public void showLoading() {
-
         mProgressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideLoading() {
-
         mProgressBar.setVisibility(View.GONE);
     }
 
@@ -192,27 +160,23 @@ public class MoviesActivity extends ActionBarActivity implements
 
     @Override
     public void hideActionLabel() {
-
         SnackbarManager.dismiss();
     }
 
     @Override
     public boolean isTheListEmpty() {
-
         return (mMoviesAdapter == null) || mMoviesAdapter.getMovieList().isEmpty();
     }
 
     @Override
     public void appendMovies(List<Movie> movieList) {
-
         mMoviesAdapter.appendMovies(movieList);
     }
 
     @Override
     public void onClick(View touchedView, int moviePosition, float touchedX, float touchedY) {
 
-        Intent movieDetailActivityIntent = new Intent (
-                MoviesActivity.this, MovieDetailActivity.class);
+        Intent movieDetailActivityIntent = new Intent (MoviesActivity.this, MovieDetailActivity.class);
 
         String movieID = mMoviesAdapter.getMovieList().get(moviePosition).getId();
         movieDetailActivityIntent.putExtra(EXTRA_MOVIE_ID, movieID);
@@ -226,16 +190,12 @@ public class MoviesActivity extends ActionBarActivity implements
             sPhotoCache.put(0, bitmapDrawable.getBitmap());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                startDetailActivityBySharedElements(touchedView, moviePosition,
-                        movieDetailActivityIntent);
+                startDetailActivityBySharedElements(touchedView, moviePosition,movieDetailActivityIntent);
             else
-                startDetailActivityByAnimation(touchedView, (int) touchedX,
-                        (int) touchedY, movieDetailActivityIntent);
+                startDetailActivityByAnimation(touchedView, (int) touchedX,(int) touchedY, movieDetailActivityIntent);
 
         } else {
-
-            Toast.makeText(this, getString(R.string.activity_movies_message_loading_film),
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.activity_movies_message_loading_film),Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -258,12 +218,8 @@ public class MoviesActivity extends ActionBarActivity implements
 
     @SuppressWarnings("unchecked")
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void startDetailActivityBySharedElements(View touchedView,
-                                                     int moviePosition, Intent movieDetailActivityIntent) {
-
-        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-                this, new Pair<>(touchedView, SHARED_ELEMENT_COVER + moviePosition));
-
+    private void startDetailActivityBySharedElements(View touchedView,int moviePosition, Intent movieDetailActivityIntent) {
+        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this, new Pair<>(touchedView, SHARED_ELEMENT_COVER + moviePosition));
         startActivity(movieDetailActivityIntent, options.toBundle());
     }
 
@@ -275,60 +231,42 @@ public class MoviesActivity extends ActionBarActivity implements
 
             super.onScrolled(recyclerView, dx, dy);
 
-            int visibleItemCount    = mRecycler.getLayoutManager().getChildCount();
             int totalItemCount      = mRecycler.getLayoutManager().getItemCount();
-            int pastVisibleItems    = ((GridLayoutManager) mRecycler.getLayoutManager())
-                    .findFirstVisibleItemPosition();
+            int visibleItemCount    = mRecycler.getLayoutManager().getChildCount();
+            int pastVisibleItems    = ((GridLayoutManager) mRecycler.getLayoutManager()).findFirstVisibleItemPosition();
 
-            if((visibleItemCount + pastVisibleItems) >= totalItemCount && !mMoviesPresenter.isLoading()) {
-                mMoviesPresenter.onEndListReached();
+            if((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                mMoviesPresenter.getPopularMoviesByPage(""+page+1);
             }
 
             // Is scrolling up
             if (dy > 10) {
-
                 if (!flag) {
-
                     showToolbar();
                     flag = true;
                 }
-
                 // Is scrolling down
             } else if (dy < -10) {
-
                 if (flag) {
-
                     hideToolbar();
                     flag = false;
                 }
             }
-
         }
     };
 
 
     private void showToolbar() {
-
-        mToolbar.startAnimation(AnimationUtils.loadAnimation(this,
-                R.anim.translate_up_off));
+        mToolbar.startAnimation(AnimationUtils.loadAnimation(this,R.anim.translate_up_off));
     }
 
     private void hideToolbar() {
-
-        mToolbar.startAnimation(AnimationUtils.loadAnimation(this,
-                R.anim.translate_up_on));
+        mToolbar.startAnimation(AnimationUtils.loadAnimation(this,R.anim.translate_up_on));
     }
 
     @Override
     public void onClick(View v) {
-
         mNavigationDrawerFragment.openFragment();
     }
 
-    @Override
-    protected void onStop() {
-
-        super.onStop();
-        mMoviesPresenter.stop();
-    }
 }

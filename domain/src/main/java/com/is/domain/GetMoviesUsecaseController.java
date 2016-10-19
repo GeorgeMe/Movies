@@ -1,5 +1,5 @@
 package com.is.domain;
-import com.is.model.entities.MoviesWrapper;
+import com.is.movies.entities.MoviesWrapper;
 import com.is.model.rest.RestDataSource;
 import com.squareup.otto.Bus;
 

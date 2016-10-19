@@ -1,4 +1,4 @@
-package com.is.model.entities;
+package com.is.movies.entities;
 
 /**
  * Created by George on 2015/8/13.

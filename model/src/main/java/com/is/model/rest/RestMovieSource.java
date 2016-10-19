@@ -1,113 +1,106 @@
 package com.is.model.rest;
+import android.content.Context;
+
 import com.is.model.common.Constants;
-import com.is.model.entities.ConfigurationResponse;
-import com.is.model.entities.ImagesWrapper;
-import com.is.model.entities.MovieDetail;
-import com.is.model.entities.MoviesWrapper;
-import com.is.model.entities.ReviewsWrapper;
+import com.is.movies.entities.ConfigurationResponse;
+import com.is.movies.entities.ImagesWrapper;
+import com.is.movies.entities.MovieDetail;
+import com.is.movies.entities.MoviesWrapper;
+import com.is.movies.entities.ReviewsWrapper;
 import com.squareup.otto.Bus;
 
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /**
  * Created by George on 2015/8/13.
  */
-public class RestMovieSource implements RestDataSource {
+public class RestMovieSource extends Retrofit2Movie implements RestDataSource {
 
-    private final MovieDatabaseAPI moviesDBApi;
-    private final Bus bus;
+    private  Bus bus;
 
-    public RestMovieSource(Bus bus) {
-
-        RestAdapter movieAPIRest = new RestAdapter.Builder()
-                .setEndpoint(Constants.MOVIE_DB_HOST)
-                .setLogLevel(RestAdapter.LogLevel.HEADERS_AND_ARGS)
-                .build();
-
-        moviesDBApi = movieAPIRest.create(MovieDatabaseAPI.class);
+    public RestMovieSource(Context context, Bus bus) {
+        super(context);
         this.bus = bus;
     }
 
     @Override
     public void getMovies() {
 
-        moviesDBApi.getPopularMovies(Constants.API_KEY, retrofitCallback);
+        movieDatabaseAPI.getPopularMovies(Constants.API_KEY, retrofitCallback);
     }
 
     @Override
     public void getDetailMovie(String id) {
 
-        moviesDBApi.getMovieDetail(Constants.API_KEY, id,
+        movieDatabaseAPI.getMovieDetail(Constants.API_KEY, id,
                 retrofitCallback);
     }
 
     @Override
     public void getReviews(String id) {
 
-        moviesDBApi.getReviews(Constants.API_KEY, id,
+        movieDatabaseAPI.getReviews(Constants.API_KEY, id,
                 retrofitCallback);
     }
 
     @Override
     public void getConfiguration() {
 
-        moviesDBApi.getConfiguration(Constants.API_KEY, retrofitCallback);
+        movieDatabaseAPI.getConfiguration(Constants.API_KEY, retrofitCallback);
     }
 
     @Override
     public void getImages(String movieId) {
 
-        moviesDBApi.getImages(Constants.API_KEY, movieId,
+        movieDatabaseAPI.getImages(Constants.API_KEY, movieId,
                 retrofitCallback);
     }
-
-    public Callback retrofitCallback = new Callback() {
-        @Override
-        public void success(Object o, Response response) {
-
-            if (o instanceof MovieDetail) {
-
-                MovieDetail detailResponse = (MovieDetail) o;
-                bus.post(detailResponse);
-
-            } else if (o instanceof MoviesWrapper) {
-
-                MoviesWrapper moviesApiResponse = (MoviesWrapper) o;
-                bus.post(moviesApiResponse);
-
-            } else if (o instanceof ConfigurationResponse) {
-
-                ConfigurationResponse configurationResponse = (ConfigurationResponse) o;
-                bus.post(configurationResponse);
-
-            } else if (o instanceof ReviewsWrapper) {
-
-                ReviewsWrapper reviewsWrapper = (ReviewsWrapper) o;
-                bus.post(reviewsWrapper);
-
-            } else if (o instanceof ImagesWrapper) {
-
-                ImagesWrapper imagesWrapper = (ImagesWrapper) o;
-                bus.post(imagesWrapper);
-            }
-        }
-
-        @Override
-        public void failure(RetrofitError error) {
-
-            System.out.printf("[DEBUG] RestMovieSource failure - " + error.getMessage());
-        }
-    };
 
     @Override
     public void getMoviesByPage(int page) {
 
-        moviesDBApi.getPopularMoviesByPage(
+        movieDatabaseAPI.getPopularMoviesByPage(
                 Constants.API_KEY,
                 page + "",
                 retrofitCallback
         );
     }
+    public Callback retrofitCallback=new Callback() {
+        @Override
+        public void onResponse(Call call, Response response) {
+
+            if (response.body() instanceof MovieDetail) {
+
+                MovieDetail detailResponse = (MovieDetail) response.body();
+                bus.post(detailResponse);
+
+            } else if (response.body() instanceof MoviesWrapper) {
+
+                MoviesWrapper moviesApiResponse = (MoviesWrapper) response.body();
+                bus.post(moviesApiResponse);
+
+            } else if (response.body() instanceof ConfigurationResponse) {
+
+                ConfigurationResponse configurationResponse = (ConfigurationResponse) response.body();
+                bus.post(configurationResponse);
+
+            } else if (response.body() instanceof ReviewsWrapper) {
+
+                ReviewsWrapper reviewsWrapper = (ReviewsWrapper) response.body();
+                bus.post(reviewsWrapper);
+
+            } else if (response.body() instanceof ImagesWrapper) {
+
+                ImagesWrapper imagesWrapper = (ImagesWrapper) response.body();
+                bus.post(imagesWrapper);
+            }
+        }
+
+        @Override
+        public void onFailure(Call call, Throwable t) {
+            System.out.printf("[DEBUG] RestMovieSource failure - " + t.getMessage());
+        }
+    };
 }

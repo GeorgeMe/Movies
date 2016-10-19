@@ -5,8 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,7 +18,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -28,10 +25,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.is.movies.MoviesApp;
 import com.is.movies.R;
-import com.is.movies.dagger.components.DaggerMovieUsecasesComponent;
-import com.is.movies.dagger.modules.MovieUsecasesModule;
 import com.is.movies.mvp.presenters.MovieDetailPresenter;
 import com.is.movies.mvp.views.DetailView;
 import com.is.movies.utils.GUIUtils;
@@ -40,18 +34,13 @@ import com.is.movies.custom.listeners.AnimatorAdapter;
 import com.is.movies.custom.listeners.TransitionAdapter;
 import com.is.movies.custom.views.ObservableScrollView;
 import com.is.movies.custom.views.ScrollViewListener;
-import com.is.model.entities.Review;
-import com.squareup.picasso.Picasso;
+import com.is.movies.entities.Review;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.InjectViews;
 import butterknife.OnClick;
-import butterknife.Optional;
 
 import static android.support.v7.graphics.Palette.Swatch;
 import static android.widget.LinearLayout.LayoutParams;
@@ -79,12 +68,12 @@ public class MovieDetailActivity extends Activity implements DetailView,
 
     // The time that the confirmation view will be shown (milliseconds)
     private static final int CONFIRMATION_VIEW_DELAY = 1500;
-    @Inject MovieDetailPresenter mDetailPresenter;
+    private MovieDetailPresenter mDetailPresenter;
 
     private Swatch mBrightSwatch;
 
 
-    @InjectViews({
+    @Bind({
             R.id.activity_detail_content,
             R.id.activity_detail_homepage,
             R.id.activity_detail_company,
@@ -93,21 +82,21 @@ public class MovieDetailActivity extends Activity implements DetailView,
     })
     List<TextView> mMovieInfoTextViews;
 
-    @InjectViews({
+    @Bind({
             R.id.activity_detail_header_tagline,
             R.id.activity_detail_header_description,
             R.id.activity_detail_header_reviews
     })
     List<TextView> movieHeaders;
 
-    @InjectView(R.id.activity_detail_title)             TextView  mTitle;
-    @InjectView(R.id.activity_detail_fab)               ImageView mFabButton;
-    @InjectView(R.id.activity_detail_container)         View mInformationContainer;
-    @InjectView(R.id.item_movie_cover)                  ImageView mCoverImageView;
-    @InjectView(R.id.activity_detail_conf_container)    FrameLayout mConfirmationContainer;
-    @InjectView(R.id.activity_detail_book_info)         LinearLayout mMovieDescriptionContainer;
+    @Bind(R.id.activity_detail_title)             TextView  mTitle;
+    @Bind(R.id.activity_detail_fab)               ImageView mFabButton;
+    @Bind(R.id.activity_detail_container)         View mInformationContainer;
+    @Bind(R.id.item_movie_cover)                  ImageView mCoverImageView;
+    @Bind(R.id.activity_detail_conf_container)    FrameLayout mConfirmationContainer;
+    @Bind(R.id.activity_detail_book_info)         LinearLayout mMovieDescriptionContainer;
 
-    @InjectView(R.id.activity_detail_scroll)            ObservableScrollView mObservableScrollView;
+    @Bind(R.id.activity_detail_scroll)            ObservableScrollView mObservableScrollView;
     private int[] mViewLastLocation;
 
 
@@ -116,40 +105,23 @@ public class MovieDetailActivity extends Activity implements DetailView,
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
-        mIsTablet = getContext().getResources().getBoolean(
-                R.bool.is_tablet);
+        mIsTablet = getContext().getResources().getBoolean(R.bool.is_tablet);
 
         initializeDependencyInjector();
         initializeStartAnimation();
     }
 
-    @Override
-    protected void onStart() {
-
-        super.onStart();
-        mDetailPresenter.attachView(this);
-        mDetailPresenter.start();
-    }
-
     private void initializeStartAnimation() {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
             if (!mIsTablet) {
-
                 GUIUtils.makeTheStatusbarTranslucent(this);
                 mObservableScrollView.setScrollViewListener(this);
             }
-
             configureEnterTransition ();
-
         } else {
-
-            mViewLastLocation = getIntent().getIntArrayExtra(
-                    MoviesActivity.EXTRA_MOVIE_LOCATION);
-
+            mViewLastLocation = getIntent().getIntArrayExtra(MoviesActivity.EXTRA_MOVIE_LOCATION);
             configureEnterAnimation ();
         }
     }
@@ -157,12 +129,9 @@ public class MovieDetailActivity extends Activity implements DetailView,
     private void initializeDependencyInjector() {
 
         String movieId = getIntent().getStringExtra(MoviesActivity.EXTRA_MOVIE_ID);
-        MoviesApp app = (MoviesApp) getApplication();
-
-        DaggerMovieUsecasesComponent.builder()
-                .appComponent(app.getAppComponent())
-                .movieUsecasesModule(new MovieUsecasesModule(movieId))
-                .build().inject(this);
+        if (mDetailPresenter==null)
+            mDetailPresenter=new MovieDetailPresenter(this,getContext());
+        mDetailPresenter.getReviews(movieId);
     }
 
     private void configureEnterAnimation() {
@@ -341,7 +310,6 @@ public class MovieDetailActivity extends Activity implements DetailView,
 
     @Override
     public Context getContext() {
-
         return this;
     }
 
@@ -525,10 +493,4 @@ public class MovieDetailActivity extends Activity implements DetailView,
         this.finish();
     }
 
-    @Override
-    protected void onStop() {
-
-        super.onStop();
-        mDetailPresenter.stop();
-    }
 }

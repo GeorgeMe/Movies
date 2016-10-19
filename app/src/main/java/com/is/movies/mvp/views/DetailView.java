@@ -1,6 +1,6 @@
 package com.is.movies.mvp.views;
 import android.graphics.Bitmap;
-import com.is.model.entities.Review;
+import com.is.movies.entities.Review;
 import java.util.List;
 /**
  * Created by George on 2015/8/13.

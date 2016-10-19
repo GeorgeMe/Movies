@@ -1,7 +1,7 @@
 package com.is.domain;
-import com.is.model.entities.ImagesWrapper;
-import com.is.model.entities.MovieDetail;
-import com.is.model.entities.ReviewsWrapper;
+import com.is.movies.entities.ImagesWrapper;
+import com.is.movies.entities.MovieDetail;
+import com.is.movies.entities.ReviewsWrapper;
 /**
  * Created by George on 2015/8/13.
  */

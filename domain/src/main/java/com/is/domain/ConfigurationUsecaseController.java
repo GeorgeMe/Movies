@@ -1,6 +1,6 @@
 package com.is.domain;
 import com.is.model.MediaDataSource;
-import com.is.model.entities.ConfigurationResponse;
+import com.is.movies.entities.ConfigurationResponse;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 

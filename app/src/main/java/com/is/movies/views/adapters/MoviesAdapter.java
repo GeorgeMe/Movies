@@ -12,8 +12,8 @@ import android.widget.TextView;
 
 import com.is.movies.R;
 import com.is.movies.utils.RecyclerViewClickListener;
-import com.is.model.entities.Movie;
-import com.is.model.common.Constants;
+import com.is.movies.entities.Movie;
+import com.is.movies.Constants;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 

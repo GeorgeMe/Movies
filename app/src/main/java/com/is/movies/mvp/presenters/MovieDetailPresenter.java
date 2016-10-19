@@ -1,61 +1,54 @@
 package com.is.movies.mvp.presenters;
+import android.content.Context;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.is.movies.mvp.interactor.ReviewsWrapperInteractor;
+import com.is.movies.mvp.listeners.BaseSingleLoadedListener;
 import com.is.movies.mvp.views.DetailView;
 import com.is.movies.views.activities.MoviesActivity;
-import com.is.model.common.Constants;
-import com.is.domain.GetMovieDetailUsecase;
-import com.is.model.entities.ImagesWrapper;
-import com.is.model.entities.MovieDetail;
-import com.is.model.entities.Production_companies;
-import com.is.model.entities.ReviewsWrapper;
-import com.squareup.otto.Bus;
+import com.is.movies.Constants;
+import com.is.movies.entities.ImagesWrapper;
+import com.is.movies.entities.MovieDetail;
+import com.is.movies.entities.Production_companies;
+import com.is.movies.entities.ReviewsWrapper;
 import com.squareup.otto.Subscribe;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Random;
 
-import javax.inject.Inject;
 /**
  * Created by George on 2015/8/13.
  */
-public class MovieDetailPresenter extends Presenter {
+public class MovieDetailPresenter implements BaseSingleLoadedListener<ReviewsWrapper> {
 
-    private final Bus mBus;
     private DetailView mMovieDetailView;
-    private final GetMovieDetailUsecase mMovieDetailUsecase;
-
-    @Inject
-    public MovieDetailPresenter(GetMovieDetailUsecase movieDetailUsecase, Bus bus) {
-
-        mMovieDetailUsecase = movieDetailUsecase;
-        mBus = bus;
+    private Context context;
+    private ReviewsWrapperInteractor reviewsWrapperInteractor;
+    public MovieDetailPresenter(DetailView mMovieDetailView, Context context) {
+        this.mMovieDetailView = mMovieDetailView;
+        this.context = context;
+        reviewsWrapperInteractor=new ReviewsWrapperInteractor(context,this);
+        mMovieDetailView.showFilmCover(MoviesActivity.sPhotoCache.get(0));
     }
 
-    public void attachView (DetailView movieDetailView) {
+    public void getReviews(String id){
+        JSONObject json=new JSONObject();
+        try {
+            json.put("id",id);
+        }catch (JSONException j){
 
-        mMovieDetailView = movieDetailView;
-        mMovieDetailView.showFilmCover(MoviesActivity.sPhotoCache.get(0));
-        mMovieDetailUsecase.execute();
+        }
+        reviewsWrapperInteractor.getCommonSingleData(json);
     }
 
     public void showDescription(String description) {
 
         mMovieDetailView.setDescription(description);
-    }
-
-    @Override
-    public void start() {
-
-        mBus.register(this);
-    }
-
-    @Override
-    public void stop() {
-
-        mBus.unregister(this);
     }
 
     public void showTagline(String tagLine) {
@@ -103,8 +96,7 @@ public class MovieDetailPresenter extends Presenter {
             int randomIndex = new Random().nextInt(movieImagesList.size());
             Log.d("[DEBUG]", "MovieDetailPresenter showFilmImage - Random index: "+randomIndex);
 
-            mMovieDetailView.showMovieImage (Constants.BASIC_STATIC_URL +
-                    movieImagesList.get(randomIndex).getFile_path());
+            mMovieDetailView.showMovieImage (Constants.BASIC_STATIC_URL +movieImagesList.get(randomIndex).getFile_path());
         }
     }
 
@@ -128,5 +120,15 @@ public class MovieDetailPresenter extends Presenter {
 
         if (!TextUtils.isEmpty(homepage))
             mMovieDetailView.setHomepage(homepage);
+    }
+
+    @Override
+    public void onSuccess(ReviewsWrapper data) {
+        mMovieDetailView.showReviews(data.getResults());
+    }
+
+    @Override
+    public void onFailure(String msg) {
+
     }
 }

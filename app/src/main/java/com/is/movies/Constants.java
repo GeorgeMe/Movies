@@ -1,4 +1,4 @@
-package com.is.model.common;
+package com.is.movies;
 
 public class Constants {
 	
@@ -7,5 +7,7 @@ public class Constants {
     public static final String API_KEY = "0b6ac64c50e69688ce062d2faabedbf4";
 	
     public static final String MOVIE_DB_HOST = "http://api.themoviedb.org/3/";
-    public static String BASIC_STATIC_URL = "";
+    public static String BASIC_STATIC_URL = "https://image.tmdb.org/t/p/w780/";
+    public static String Cookie = "";
+    public static String SEE_COOKIE = "cookie";
 }

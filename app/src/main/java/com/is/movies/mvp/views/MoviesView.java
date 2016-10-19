@@ -1,5 +1,5 @@
 package com.is.movies.mvp.views;
-import com.is.model.entities.Movie;
+import com.is.movies.entities.Movie;
 import java.util.List;
 /**
  * Created by George on 2015/8/13.

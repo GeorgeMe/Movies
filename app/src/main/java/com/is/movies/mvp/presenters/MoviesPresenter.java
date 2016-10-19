@@ -1,94 +1,73 @@
 package com.is.movies.mvp.presenters;
+import android.content.Context;
+
+import com.is.movies.mvp.interactor.MoviesWrapperInteractor;
+import com.is.movies.mvp.listeners.BaseSingleLoadedListener;
 import com.is.movies.mvp.views.MoviesView;
-import com.is.model.common.Constants;
-import com.is.domain.ConfigurationUsecase;
-import com.is.domain.GetMoviesUsecase;
-import com.is.model.entities.MoviesWrapper;
-import com.squareup.otto.Bus;
+import com.is.movies.Constants;
+import com.is.movies.entities.MoviesWrapper;
 import com.squareup.otto.Subscribe;
 
-import javax.inject.Inject;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by George on 2015/8/13.
  */
-public class MoviesPresenter extends Presenter {
+public class MoviesPresenter implements BaseSingleLoadedListener<MoviesWrapper> {
 
-    private final Bus mBus;
-    private ConfigurationUsecase mConfigureUsecase;
-    private GetMoviesUsecase mGetPopularShows;
+    private MoviesWrapperInteractor moviesWrapperInteractor;
+    private Context context;
     private MoviesView mMoviesView;
 
-    private boolean isLoading = false;
-    private boolean mRegistered;
-
-    @Inject
-    public MoviesPresenter(ConfigurationUsecase configurationUsecase, GetMoviesUsecase getMoviesUsecase, Bus bus) {
-
-        mConfigureUsecase   = configurationUsecase;
-        mGetPopularShows    = getMoviesUsecase;
-        mBus = bus;
+    public MoviesPresenter(Context context,MoviesView mMoviesView) {
+        this.context=context;
+        this.mMoviesView = mMoviesView;
+        moviesWrapperInteractor=new MoviesWrapperInteractor(context,this);
     }
 
-    public void attachView (MoviesView moviesView) {
-
-        mMoviesView = moviesView;
-    }
-
-    @Subscribe
     public void onPopularMoviesReceived(MoviesWrapper moviesWrapper) {
-
+        mMoviesView.hideLoading();
+        mMoviesView.hideActionLabel();
         if (mMoviesView.isTheListEmpty()) {
-
-            mMoviesView.hideLoading();
             mMoviesView.showMovies(moviesWrapper.getResults());
-
         } else {
-
-            mMoviesView.hideActionLabel();
             mMoviesView.appendMovies(moviesWrapper.getResults());
         }
+    }
 
-        isLoading = false;
+    public void getPopularMoviesByPage(String page){
+        mMoviesView.showLoading();
+        mMoviesView.showLoadingLabel();
+        JSONObject json=new JSONObject();
+        try {
+            json.put("page",page);
+        }catch (JSONException j){
+            mMoviesView.hideLoading();
+            mMoviesView.hideActionLabel();
+            //抛异常处理
+        }
+        moviesWrapperInteractor.getCommonSingleData(json);
     }
 
     @Subscribe
     public void onConfigurationFinished (String baseImageUrl) {
-
         Constants.BASIC_STATIC_URL = baseImageUrl;
-        mGetPopularShows.execute();
-    }
-
-    public void onEndListReached () {
-
-        mGetPopularShows.execute();
-        mMoviesView.showLoadingLabel ();
-        isLoading = true;
     }
 
     @Override
-    public void start() {
-
+    public void onSuccess(MoviesWrapper moviesWrapper) {
+        mMoviesView.hideLoading();
+        mMoviesView.hideActionLabel();
         if (mMoviesView.isTheListEmpty()) {
-
-            mBus.register(this);
-            mRegistered = true;
-
-            mMoviesView.showLoading();
-            mConfigureUsecase.execute();
+            mMoviesView.showMovies(moviesWrapper.getResults());
+        } else {
+            mMoviesView.appendMovies(moviesWrapper.getResults());
         }
     }
 
     @Override
-    public void stop() {
-    }
+    public void onFailure(String msg) {
 
-    public boolean isLoading() {
-
-        return isLoading;
-    }
-
-    public void setLoading(boolean isLoading) {
-
-        this.isLoading = isLoading;
     }
 }

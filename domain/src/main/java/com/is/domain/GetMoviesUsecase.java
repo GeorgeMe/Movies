@@ -1,5 +1,5 @@
 package com.is.domain;
-import com.is.model.entities.MoviesWrapper;
+import com.is.movies.entities.MoviesWrapper;
 /**
  * Created by George on 2015/8/13.
  */

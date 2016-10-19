@@ -1,8 +1,8 @@
 package com.is.domain;
 import com.is.model.MediaDataSource;
-import com.is.model.entities.ImagesWrapper;
-import com.is.model.entities.MovieDetail;
-import com.is.model.entities.ReviewsWrapper;
+import com.is.movies.entities.ImagesWrapper;
+import com.is.movies.entities.MovieDetail;
+import com.is.movies.entities.ReviewsWrapper;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 /**

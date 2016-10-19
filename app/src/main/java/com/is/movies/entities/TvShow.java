@@ -1,4 +1,4 @@
-package com.is.model.entities;
+package com.is.movies.entities;
 
 
 import java.util.List;

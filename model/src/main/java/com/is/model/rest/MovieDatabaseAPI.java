@@ -1,15 +1,15 @@
 package com.is.model.rest;
 
-import com.is.model.entities.ConfigurationResponse;
-import com.is.model.entities.ImagesWrapper;
-import com.is.model.entities.MovieDetail;
-import com.is.model.entities.MoviesWrapper;
-import com.is.model.entities.ReviewsWrapper;
+import com.is.movies.entities.ConfigurationResponse;
+import com.is.movies.entities.ImagesWrapper;
+import com.is.movies.entities.MovieDetail;
+import com.is.movies.entities.MoviesWrapper;
+import com.is.movies.entities.ReviewsWrapper;
 
-import retrofit.Callback;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Callback;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 /**
  * Interface representing the MovieDatabaseAPI endpoints

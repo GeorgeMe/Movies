@@ -1,23 +1,29 @@
-package com.is.model.entities;
+package com.is.movies.entities;
 
 /**
  * Created by George on 2015/8/13.
  */
-
-public class Genres{
+public class Production_companies {
     private Number id;
     private String name;
 
-    public Number getId(){
+    public Number getId() {
+
         return this.id;
     }
-    public void setId(Number id){
+
+    public void setId(Number id) {
+
         this.id = id;
     }
-    public String getName(){
+
+    public String getName() {
+
         return this.name;
     }
-    public void setName(String name){
+
+    public void setName(String name) {
+
         this.name = name;
     }
 }
